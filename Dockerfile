@@ -1,7 +1,7 @@
 FROM golang:1.17 as builder
 WORKDIR /root/brul2influx
 COPY lib lib
-COPY brul2influx.go go.mod go.sum .
+COPY brul2influx.go go.mod go.sum /root/brul2influx/
 RUN GOOS=linux go build -o brul2influx brul2influx.go
 
 FROM debian:11
