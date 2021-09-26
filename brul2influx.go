@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"net"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -27,18 +29,28 @@ type TemperatureSample struct {
 }
 
 func main() {
-	conn, err := net.Dial("tcp", "10.0.8.107:8001")
+	gemHost, ok := os.LookupEnv("GEM_HOST")
+	if !ok {
+		log.Fatal("GEM_HOST is required")
+	}
+
+	conn, err := net.Dial("tcp", gemHost)
 	if err != nil {
 		log.Fatal("failed connecting")
 	}
 
+	influxdbHost, ok := os.LookupEnv("INFLUXDB_HOST")
+	if !ok {
+		log.Fatal("INFLUXDB_HOST is required")
+	}
+
 	influxClient, err := client.NewHTTPClient(client.HTTPConfig{
-		Addr: "https://influxdb.adam.gs",
+		Addr: influxdbHost,
 	})
 	if err != nil {
 		log.WithFields(log.Fields{
 			"error":   err,
-			"address": "https://influxdb.adam.gs",
+			"address": influxdbHost,
 		}).Panic("unable to create new influx HTTP client")
 	}
 	bgChannel, err := influxbg.NewInfluxBGWriter(influxClient, "gem")
@@ -49,17 +61,9 @@ func main() {
 		}
 	}()
 
-	for {
-		bl := make([]byte, 5000)
+	scanner := bufio.NewScanner(conn)
 
-		b, err := conn.Read(bl)
-		if err != nil {
-			log.Fatal("failed reading")
-		}
-		if b == 0 {
-			continue
-		}
-
+	for scanner.Scan() {
 		var volts float64
 		var serial string
 
@@ -67,7 +71,7 @@ func main() {
 		pulse_channels := make(map[int64]*PulseSample)
 		temperature_channels := make(map[int64]*TemperatureSample)
 
-		dataTrim := string(bl[0 : b-2])
+		dataTrim := scanner.Text()
 		pairs := strings.Split(dataTrim, "&")
 		for _, dataPoint := range pairs {
 			dataPointSplit := strings.Split(dataPoint, "=")
