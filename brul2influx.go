@@ -101,6 +101,9 @@ func main() {
 						}
 						dataPointKey := dataPointSplit[0]
 						dataPointValue := dataPointSplit[1]
+						if dataPointKey == "Alive n" {
+							dataPointKey = "n"
+						}
 
 						switch dataPointKey {
 						case "v":
@@ -121,17 +124,15 @@ func main() {
 						default:
 							dataPointKeySplit := strings.Split(dataPointKey, "_")
 							if len(dataPointKeySplit) != 2 {
-								if dataPointKey != "Alive" {
-									log.WithFields(log.Fields{
-										"dataPointKeySplit":      dataPointKeySplit,
-										"dataPointSplit":         dataPointSplit,
-										"dataPointKey":           dataPointKey,
-										"dataPoint":              dataPoint,
-										"dataTrim":               dataTrim,
-										"gemHost":                gemHost,
-										"len(dataPointKeySplit)": len(dataPointKeySplit),
-									}).Error("len(dataPointKeySplit) != 2")
-								}
+								log.WithFields(log.Fields{
+									"dataPointKeySplit":      dataPointKeySplit,
+									"dataPointSplit":         dataPointSplit,
+									"dataPointKey":           dataPointKey,
+									"dataPoint":              dataPoint,
+									"dataTrim":               dataTrim,
+									"gemHost":                gemHost,
+									"len(dataPointKeySplit)": len(dataPointKeySplit),
+								}).Error("len(dataPointKeySplit) != 2")
 								continue
 							}
 							dataPointType := dataPointKeySplit[0]
