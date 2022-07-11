@@ -1,4 +1,4 @@
-FROM golang:1.17 as builder
+FROM docker.io/golang:1.17 as builder
 WORKDIR /root/brul2influx
 COPY lib lib
 COPY brul2influx.go go.mod go.sum /root/brul2influx/
