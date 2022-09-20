@@ -6,5 +6,6 @@ build:
   stage: build
   script:
     - podman login -u gitlab-ci-token -p $CI_BUILD_TOKEN gitlab-registry.adam.gs
-    - podman build --no-cache -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA" -t "$CI_REGISTRY_IMAGE:latest"  .
+    - podman build --no-cache -t "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA" .
     - podman push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA"
+    - podman push "$CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA" "$CI_REGISTRY_IMAGE:latest"
