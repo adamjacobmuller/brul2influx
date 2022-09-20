@@ -242,6 +242,13 @@ func main() {
 							}
 						}
 					}
+
+					log.WithFields(log.Fields{
+						"dataTrim": dataTrim,
+						"serial":   serial,
+						"volts":    volts,
+					}).Info("decoded voltage data")
+
 					ts := time.Now()
 
 					voltage_tags := map[string]string{
