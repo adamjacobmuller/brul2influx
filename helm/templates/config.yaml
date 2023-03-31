@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "helm.fullname" . }}-config
+  labels:
+    {{- include "helm.labels" . | nindent 4 }}
+data:
+  config.json: |
+    {
+      "hosts": [
+        "10.0.8.51:8001",
+        "10.0.8.175:8001"
+      ],
+      "influxdb": "https://influxdb.adam.gs"
+    }

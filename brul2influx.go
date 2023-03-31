@@ -2,7 +2,9 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"os"
 	"strconv"
@@ -10,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/adamjacobmuller/brul2influx/lib"
+	influxbg "github.com/adamjacobmuller/brul2influx/lib"
 	"github.com/influxdata/influxdb/client/v2"
 	log "github.com/sirupsen/logrus"
 )
@@ -29,40 +31,60 @@ type TemperatureSample struct {
 	Temperature float64
 }
 
+type Config struct {
+	Hosts    []string `json:"hosts"`
+	InfluxDB string   `json:"influxdb"`
+}
+
 func main() {
-	gemHostsString, ok := os.LookupEnv("GEM_HOSTS")
-	if !ok {
-		log.Fatal("GEM_HOSTS is required")
+	fh, err := os.Open("/config/config.json")
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error":  err,
+			"config": "/config/config.json",
+		}).Panic("unable to open configuration file")
 	}
 
-	gemHosts := strings.Split(gemHostsString, ",")
-	influxdbHost, ok := os.LookupEnv("INFLUXDB_HOST")
-	if !ok {
-		log.Fatal("INFLUXDB_HOST is required")
+	data, err := io.ReadAll(fh)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error":  err,
+			"config": "/config/config.json",
+		}).Panic("unable to read configuration file")
+	}
+
+	config := &Config{}
+	err = json.Unmarshal(data, config)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"error":  err,
+			"config": "/config/config.json",
+			"data":   string(data),
+		}).Panic("unable to unmarshal configuration file")
 	}
 
 	influxClient, err := client.NewHTTPClient(client.HTTPConfig{
-		Addr: influxdbHost,
+		Addr: config.InfluxDB,
 	})
 	if err != nil {
 		log.WithFields(log.Fields{
 			"error":   err,
-			"address": influxdbHost,
+			"address": config.InfluxDB,
 		}).Panic("unable to create new influx HTTP client")
 	}
 	bgChannel, err := influxbg.NewInfluxBGWriter(influxClient, "gem")
 	if err != nil {
 		log.WithFields(log.Fields{
 			"error":   err,
-			"address": influxdbHost,
+			"address": config.InfluxDB,
 		}).Panic("unable to create new NewInfluxBGWriter")
 	}
 
 	wg := &sync.WaitGroup{}
 
-	wg.Add(len(gemHosts))
+	wg.Add(len(config.Hosts))
 
-	for _, gemHost := range gemHosts {
+	for _, gemHost := range config.Hosts {
 		go func(gemHost string, bgChannel chan<- *client.Point, wg *sync.WaitGroup) {
 			for {
 				conn, err := net.Dial("tcp", gemHost)
