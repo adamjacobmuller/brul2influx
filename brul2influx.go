@@ -12,9 +12,9 @@ import (
 	"sync"
 	"time"
 
-	influxbg "github.com/adamjacobmuller/brul2influx/lib"
 	"github.com/influxdata/influxdb/client/v2"
 	log "github.com/sirupsen/logrus"
+	"gitlab.adam.gs/home/lib/influxbg"
 )
 
 type EnergySample struct {
@@ -63,16 +63,9 @@ func main() {
 		}).Panic("unable to unmarshal configuration file")
 	}
 
-	influxClient, err := client.NewHTTPClient(client.HTTPConfig{
+	ibgw, err := influxbg.NewInfluxBGWriter(client.HTTPConfig{
 		Addr: config.InfluxDB,
-	})
-	if err != nil {
-		log.WithFields(log.Fields{
-			"error":   err,
-			"address": config.InfluxDB,
-		}).Panic("unable to create new influx HTTP client")
-	}
-	bgChannel, err := influxbg.NewInfluxBGWriter(influxClient, "gem")
+	}, "ecobee")
 	if err != nil {
 		log.WithFields(log.Fields{
 			"error":   err,
@@ -85,7 +78,7 @@ func main() {
 	wg.Add(len(config.Hosts))
 
 	for _, gemHost := range config.Hosts {
-		go func(gemHost string, bgChannel chan<- *client.Point, wg *sync.WaitGroup) {
+		go func(gemHost string, ibgw *influxbg.InfluxBGWriter, wg *sync.WaitGroup) {
 			for {
 				conn, err := net.Dial("tcp", gemHost)
 				if err != nil {
@@ -280,16 +273,14 @@ func main() {
 						"volts": volts,
 					}
 
-					voltagePoint, err := client.NewPoint("voltage", voltage_tags, voltage_fields, ts)
+					err := ibgw.Write("voltage", voltage_tags, voltage_fields, ts)
 					if err != nil {
 						log.WithFields(log.Fields{
 							"error":   err,
 							"tags":    voltage_tags,
 							"fields":  voltage_fields,
 							"gemHost": gemHost,
-						}).Error("unable to create point for voltage")
-					} else {
-						bgChannel <- voltagePoint
+						}).Error("unable to write point for voltage")
 					}
 
 					for channel, value := range energy_channels {
@@ -304,7 +295,7 @@ func main() {
 							"amps":       value.Amps,
 						}
 
-						energyPoint, err := client.NewPoint("energy", energy_tags, energy_fields, ts)
+						err := ibgw.Write("energy", energy_tags, energy_fields, ts)
 						if err != nil {
 							log.WithFields(log.Fields{
 								"error":   err,
@@ -312,12 +303,9 @@ func main() {
 								"fields":  energy_fields,
 								"gemHost": gemHost,
 							}).Error("unable to create point for energy")
-						} else {
-							bgChannel <- energyPoint
 						}
 					}
 					for channel, value := range temperature_channels {
-						//fmt.Printf("Temperature %d = %#v\n", channel, value)
 						temperature_tags := map[string]string{
 							"serial":  serial,
 							"channel": fmt.Sprintf("%d", channel),
@@ -326,7 +314,7 @@ func main() {
 							"temperature": value.Temperature,
 						}
 
-						temperaturePoint, err := client.NewPoint("temperature", temperature_tags, temperature_fields, ts)
+						err := ibgw.Write("temperature", temperature_tags, temperature_fields, ts)
 						if err != nil {
 							log.WithFields(log.Fields{
 								"error":   err,
@@ -334,12 +322,9 @@ func main() {
 								"fields":  temperature_fields,
 								"gemHost": gemHost,
 							}).Error("unable to create point for temperature")
-						} else {
-							bgChannel <- temperaturePoint
 						}
 					}
 					for channel, value := range pulse_channels {
-						//fmt.Printf("Pulse %d = %#v\n", channel, value)
 						pulse_tags := map[string]string{
 							"serial":  serial,
 							"channel": fmt.Sprintf("%d", channel),
@@ -348,7 +333,7 @@ func main() {
 							"pulses": value.Pulses,
 						}
 
-						pulsePoint, err := client.NewPoint("pulses", pulse_tags, pulse_fields, ts)
+						err := ibgw.Write("pulses", pulse_tags, pulse_fields, ts)
 						if err != nil {
 							log.WithFields(log.Fields{
 								"error":   err,
@@ -356,8 +341,6 @@ func main() {
 								"fields":  pulse_fields,
 								"gemHost": gemHost,
 							}).Error("unable to create point for pulses")
-						} else {
-							bgChannel <- pulsePoint
 						}
 					}
 				}
@@ -366,7 +349,7 @@ func main() {
 				}
 			}
 			wg.Done()
-		}(gemHost, bgChannel, wg)
+		}(gemHost, ibgw, wg)
 	}
 	wg.Wait()
 }

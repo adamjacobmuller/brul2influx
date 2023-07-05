@@ -1,0 +1,16 @@
+# github.com/influxdata/influxdb v1.11.2
+## explicit; go 1.19
+github.com/influxdata/influxdb/client/v2
+github.com/influxdata/influxdb/models
+github.com/influxdata/influxdb/pkg/escape
+# github.com/sirupsen/logrus v1.9.3
+## explicit; go 1.13
+github.com/sirupsen/logrus
+# gitlab.adam.gs/home/lib v0.0.0-20230705001756-94f1071dd09b
+## explicit; go 1.20
+gitlab.adam.gs/home/lib/influxbg
+# golang.org/x/sys v0.5.0
+## explicit; go 1.17
+golang.org/x/sys/internal/unsafeheader
+golang.org/x/sys/unix
+golang.org/x/sys/windows

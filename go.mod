@@ -1,11 +1,11 @@
 module github.com/adamjacobmuller/brul2influx
 
-go 1.13
+go 1.20
 
 require (
-	github.com/google/go-github/v29 v29.0.3 // indirect
-	github.com/influxdata/influxdb v1.9.8
-	github.com/konsorten/go-windows-terminal-sequences v1.0.3 // indirect
-	github.com/sirupsen/logrus v1.8.1
-	golang.org/x/sys v0.0.0-20220708085239-5a0f0661e09d // indirect
+	github.com/influxdata/influxdb v1.11.2
+	github.com/sirupsen/logrus v1.9.3
+	gitlab.adam.gs/home/lib v0.0.0-20230705001756-94f1071dd09b
 )
+
+require golang.org/x/sys v0.5.0 // indirect
