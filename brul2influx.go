@@ -65,7 +65,7 @@ func main() {
 
 	ibgw, err := influxbg.NewInfluxBGWriter(client.HTTPConfig{
 		Addr: config.InfluxDB,
-	}, "ecobee")
+	}, "gem")
 	if err != nil {
 		log.WithFields(log.Fields{
 			"error":   err,
