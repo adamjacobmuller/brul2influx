@@ -1,5 +1,5 @@
 include:
-  - project: sites/kubernetes-deploy
+  - project: ci-tools/kubernetes-deploy
     ref: master
     file: gitlab-ci/deploy.yml
 variables:

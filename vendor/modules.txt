@@ -6,11 +6,11 @@ github.com/influxdata/influxdb/pkg/escape
 # github.com/sirupsen/logrus v1.9.3
 ## explicit; go 1.13
 github.com/sirupsen/logrus
-# gitlab.adam.gs/home/lib v0.0.0-20230705001756-94f1071dd09b
+# gitlab.adam.gs/home/lib v0.0.0-20230727003817-3072c8ef4bf1
 ## explicit; go 1.20
 gitlab.adam.gs/home/lib/influxbg
-# golang.org/x/sys v0.5.0
-## explicit; go 1.17
-golang.org/x/sys/internal/unsafeheader
+gitlab.adam.gs/home/lib/ticker
+# golang.org/x/sys v0.15.0
+## explicit; go 1.18
 golang.org/x/sys/unix
 golang.org/x/sys/windows
